@@ -5,6 +5,7 @@ law { Fallacy.new.plural_name == "fallacies" }
 law { Fallacy.new.summary_importance == 0.0 }
 law { Law.new(proc {true}).prove_or_disprove.is_a?(Truth) }
 law { Law.new(proc {false}).prove_or_disprove.is_a?(Fallacy) }
+law { Law.new(proc {raise Exception}).prove_or_disprove.is_a?(Fallacy) }
 
 law { Summary.new([Truth.new, Truth.new, Fallacy.new]).to_s == 
       "3 laws, 2 truths, 1 fallacies" }

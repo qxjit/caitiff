@@ -4,9 +4,13 @@ class Law
   end
 
   def prove_or_disprove
-    if @expression.call
-      Truth.new
-    else
+    begin
+      if @expression.call
+        Truth.new
+      else
+        Fallacy.new
+      end
+    rescue Exception
       Fallacy.new
     end
   end
