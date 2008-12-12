@@ -4,7 +4,7 @@ class Law
   end
 
   def prove_or_disprove
-    if eval(@expression)
+    if @expression.call
       Truth.new
     else
       Fallacy.new
@@ -52,10 +52,18 @@ class Summary
 
     summary
   end
+
+  def ==(other)
+    other.to_s == self.to_s
+  end
 end
 
-results = []
-File.read("laws.rb").each do |law|
-  results << Law.new(law).prove_or_disprove
+$results = []
+
+def law(&block)
+  $results << Law.new(block).prove_or_disprove
 end
-puts Summary.new(results)
+
+require 'laws.rb'
+
+puts Summary.new($results)
