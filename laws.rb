@@ -6,6 +6,13 @@ law { Fallacy.new.summary_importance == 0.0 }
 law { Law.new(proc {true}).prove_or_disprove.is_a?(Truth) }
 law { Law.new(proc {false}).prove_or_disprove.is_a?(Fallacy) }
 law { Law.new(proc {raise Exception}).prove_or_disprove.is_a?(Fallacy) }
+law { Law.new(proc {true}).line_number == __LINE__ }
+law { Law.new(proc {true}).filename == __FILE__ }
+
+expected_source = "law { Law.new(proc {true}).source ==
+      expected_source }"
+law { Law.new(proc {true}).source ==
+      expected_source }
 
 law { Summary.new([Truth.new, Truth.new, Fallacy.new]).to_s == 
       "3 laws, 2 truths, 1 fallacies" }
