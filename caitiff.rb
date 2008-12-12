@@ -93,8 +93,3 @@ def law(&block)
   LawListener.current.on_law(Law.new(block))
 end
 
-LawListener.with_current(judge = Judge.new) do
-  require 'laws.rb'
-end
-
-puts judge.summary

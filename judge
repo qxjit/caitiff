@@ -1,0 +1,9 @@
+#! /usr/bin/env ruby
+
+require 'caitiff'
+
+LawListener.with_current(judge = Judge.new) do
+  ARGV.each {|file| require file}
+end
+
+puts judge.summary
