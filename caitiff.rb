@@ -58,12 +58,43 @@ class Summary
   end
 end
 
-$results = []
+class Judge
+  def initialize
+    @results = []
+  end
 
-def law(&block)
-  $results << Law.new(block).prove_or_disprove
+  def on_law(law)
+    @results << law.prove_or_disprove
+  end
+
+  def summary
+    Summary.new(@results)
+  end
 end
 
-require 'laws.rb'
+module LawListener
+  @stack = []
 
-puts Summary.new($results)
+  def self.current
+    @stack.last
+  end
+
+  def self.with_current(listener)
+    @stack.push listener
+    begin
+      yield
+    ensure
+      @stack.pop
+    end
+  end
+end
+
+def law(&block)
+  LawListener.current.on_law(Law.new(block))
+end
+
+LawListener.with_current(judge = Judge.new) do
+  require 'laws.rb'
+end
+
+puts judge.summary
