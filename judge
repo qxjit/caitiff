@@ -6,4 +6,12 @@ LawListener.with_current(judge = Judge.new) do
   ARGV.each {|file| require file}
 end
 
+judge.fallacies.each do |fallacy|
+  puts "Fallacy: #{fallacy.law.filename}:#{fallacy.law.line_number}"
+  fallacy.law.source.each do |source_line|
+    puts "  #{source_line}"
+  end
+  puts ""
+end
+
 puts judge.summary

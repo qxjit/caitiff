@@ -3,6 +3,9 @@ class Law
     @expression = expression
   end
 
+  TrueLaw = Law.new(proc {true})
+  FalseLaw = Law.new(proc {false})
+
   def line_number
     eval("__LINE__", @expression.binding)
   end
@@ -20,20 +23,18 @@ class Law
       end
       source.strip
     end
-    "law { Law.new(proc {true}).source ==\n      expected_source }"
   end
 
   def prove_or_disprove
     begin
       if @expression.call
-        Truth.new
+        Truth.new(self)
       else
-        Fallacy.new
+        Fallacy.new(self)
       end
     rescue Exception
-      Fallacy.new
+      Fallacy.new(self)
     end
   end
 end
-
 

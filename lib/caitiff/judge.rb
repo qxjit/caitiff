@@ -10,5 +10,9 @@ class Judge
   def summary
     Summary.new(@results)
   end
+
+  def fallacies
+    @results.select {|result| result.is_a?(Fallacy)}
+  end
 end
 
