@@ -16,9 +16,9 @@ class Law
 
   def source
     File.open(filename) do |file|
-      (line_number - 1).times {file.readline}
-      source = file.readline
-      while((l = file.readline) && l !~ /\s*law/)
+      (line_number - 1).times {file.gets}
+      source = file.gets
+      while((l = file.gets) && l !~ /\s*law/)
         source << l
       end
       source.strip
