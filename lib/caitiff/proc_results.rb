@@ -12,10 +12,12 @@ class ProcResults
                 end
 
     if last_sexp[0] == :call
-      block_sexp[3].push Sexp.from_array([:lasgn, :__receiver__, last_sexp[1]])
-      last_sexp[1] = Sexp.from_array [:lvar, :__receiver__]
+      block_sexp[3].push Sexp.from_array([:lasgn, :__receiver__, 
+                                                  last_sexp[1] || [:nil]])
 
-      arguments_capture_sexp = Sexp.from_array [last_sexp[3].size > 1 ? :array : :nil]
+      last_sexp[1] = Sexp.from_array [:lvar, :__receiver__] if last_sexp[1]
+
+      arguments_capture_sexp = Sexp.from_array [:array]
 
       1.upto(last_sexp[3].size - 1) do |arg_index|
         block_sexp[3].push Sexp.from_array([:lasgn, 
@@ -42,8 +44,9 @@ class ProcResults
                                                     [:nil]]])
     end
 
-    block_with_captures = eval Ruby2Ruby.new.process(block_sexp), block.binding
-    block_with_captures.call
+    ruby_returning_proc_result = Ruby2Ruby.new.process(block_sexp)
+    block_returning_proc_result = eval ruby_returning_proc_result, block.binding
+    block_returning_proc_result.call
   end
 
   def initialize(value, receiver, arguments, method_name)
@@ -51,6 +54,17 @@ class ProcResults
     @receiver = receiver
     @arguments = arguments
     @method_name = method_name
+  end
+
+  def to_s
+    if receiver
+      Ruby2Ruby.new.process [:call, [:lit, receiver], 
+                                    method_name, 
+                                    [:arglist, 
+                                      *arguments.map {|a| [:lit, a]}]]
+    else
+      @value.inspect
+    end
   end
 end
 
