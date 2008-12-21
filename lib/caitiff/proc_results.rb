@@ -54,7 +54,8 @@ class ProcResults
           }
         }
 
-        if(nd_type(last_node) == NODE_FCALL) {
+        if(nd_type(last_node) == NODE_FCALL ||
+           nd_type(last_node) == NODE_VCALL) {
           last_node->nd_recv = NEW_SELF();
           nd_set_type(last_node, NODE_CALL);
         }
