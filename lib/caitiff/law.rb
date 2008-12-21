@@ -27,10 +27,11 @@ class Law
 
   def prove_or_disprove
     begin
-      if @expression.call
+      results = ProcResults.collect(@expression)
+      if results.value
         Truth.new(self)
       else
-        Fallacy.new(self)
+        Fallacy.new(self, results.to_s)
       end
     rescue Exception
       Fallacy.new(self)

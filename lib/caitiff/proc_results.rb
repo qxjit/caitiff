@@ -1,52 +1,102 @@
 class ProcResults
   attr_reader :value, :receiver, :arguments, :method_name
 
+  inline do |builder|
+    builder.include '"node.h"'
+    builder.include '"env.h"'
+
+    builder.prefix %{
+      struct BLOCK {
+          NODE *var;
+          NODE *body;
+          VALUE self;
+          struct FRAME frame;
+          struct SCOPE *scope;
+          VALUE klass;
+          NODE *cref;
+          int iter;
+          int vmode;
+          int flags;
+          int uniq;
+          struct RVarmap *dyna_vars;
+          VALUE orig_thread;
+          VALUE wrapper;
+          VALUE block_obj;
+          struct BLOCK *outer;
+          struct BLOCK *prev;
+      };
+    } unless RUBY_VERSION >= "1.9" # matz added this to env.h for ParseTree
+
+    builder.c_singleton %Q{
+      static VALUE rewrite_to_record_last_call(VALUE block) {
+        struct BLOCK *data;
+        Data_Get_Struct(block, struct BLOCK, data);
+        NODE *last_node = data->body;
+
+        while(nd_type(last_node) == NODE_NEWLINE) {
+          last_node = last_node->nd_next;
+        }
+
+        if (nd_type(last_node) == NODE_BLOCK) {
+          while(last_node->nd_next) {
+            last_node = last_node->nd_next;
+          }
+
+          while(nd_type(last_node) == NODE_BLOCK) {
+            last_node = last_node->nd_head;
+          }
+
+          while(nd_type(last_node) == NODE_NEWLINE) {
+            last_node = last_node->nd_next;
+          }
+        }
+
+        if(nd_type(last_node) == NODE_CALL) {
+          NODE *original_receiver = last_node->nd_recv;
+
+          if (nd_type(original_receiver) == NODE_CONST &&
+              original_receiver->nd_vid == rb_intern("ProcResults")) {
+            return Qnil;
+          }
+
+          ID original_mid = last_node->nd_mid;
+          NODE *new_args = NEW_ARRAY(NEW_LIT(ID2SYM(original_mid)));
+
+          new_args->nd_next = last_node->nd_args;
+          if (last_node->nd_args) {
+            new_args->nd_alen = last_node->nd_args->nd_alen + 1;
+          } 
+          last_node->nd_args = new_args;
+
+          new_args = NEW_ARRAY(last_node->nd_recv);
+
+          new_args->nd_next = last_node->nd_args;
+          new_args->nd_alen = last_node->nd_args->nd_alen + 1;
+          last_node->nd_args = new_args;
+
+          last_node->nd_recv = NEW_CONST(rb_intern("ProcResults"));
+          last_node->nd_mid = rb_intern("record");
+        }
+
+        return Qnil;
+      }
+    }
+  end
+
+  def self.record(receiver, method_name, *arguments)
+    value = receiver.send(method_name, *arguments)
+    new(value, receiver, arguments, method_name)
+  end
+
   def self.collect(block)
-    block_sexp = block.to_sexp
+    rewrite_to_record_last_call(block)
+    raw_result = block.call
 
-    last_sexp = if block_sexp[3][0] == :block
-                  block_sexp[3].pop
-                else
-                  block_sexp[3] = Sexp.from_array [:block, block_sexp[3]]
-                  block_sexp[3].pop
-                end
-
-    if last_sexp[0] == :call
-      block_sexp[3].push Sexp.from_array([:lasgn, :__receiver__, 
-                                                  last_sexp[1] || [:nil]])
-
-      last_sexp[1] = Sexp.from_array [:lvar, :__receiver__] if last_sexp[1]
-
-      arguments_capture_sexp = Sexp.from_array [:array]
-
-      1.upto(last_sexp[3].size - 1) do |arg_index|
-        block_sexp[3].push Sexp.from_array([:lasgn, 
-                                              :"__arg#{arg_index}__", 
-                                              last_sexp[3][arg_index]])
-        last_sexp[3][arg_index] = Sexp.from_array [:lvar, :"__arg#{arg_index}__"]
-        arguments_capture_sexp.push Sexp.from_array([:lvar, :"__arg#{arg_index}__"])
-      end
-
-      block_sexp[3].push Sexp.from_array([:call, [:const, :ProcResults],
-                                                 :new,
-                                                 [:arglist, 
-                                                    last_sexp, 
-                                                    [:lvar, :__receiver__],
-                                                    arguments_capture_sexp,
-                                                    [:lit, last_sexp[2]]]])
+    if raw_result.is_a?(ProcResults)
+      raw_result
     else
-      block_sexp[3].push Sexp.from_array([:call, [:const, :ProcResults],
-                                                 :new,
-                                                 [:arglist, 
-                                                    last_sexp, 
-                                                    [:nil], 
-                                                    [:nil],
-                                                    [:nil]]])
+      ProcResults.new(raw_result, nil, nil, nil)
     end
-
-    ruby_returning_proc_result = Ruby2Ruby.new.process(block_sexp)
-    block_returning_proc_result = eval ruby_returning_proc_result, block.binding
-    block_returning_proc_result.call
   end
 
   def initialize(value, receiver, arguments, method_name)

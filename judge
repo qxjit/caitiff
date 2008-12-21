@@ -11,6 +11,8 @@ judge.fallacies.each do |fallacy|
   fallacy.law.source.each do |source_line|
     puts "  #{source_line}"
   end
+  puts "  ----"
+  puts "  #{fallacy.details}"
   puts ""
 end
 

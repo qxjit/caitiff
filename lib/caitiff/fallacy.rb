@@ -1,8 +1,9 @@
 class Fallacy
-  attr_reader :law
+  attr_reader :law, :details
 
-  def initialize(law = Law::FalseLaw)
+  def initialize(law = Law::FalseLaw, details = "")
     @law = law
+    @details = details
   end
 
   def plural_name

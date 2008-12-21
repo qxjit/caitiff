@@ -16,3 +16,7 @@ law { Law.new(proc {true}).filename == __FILE__ }
 
 law { Law::TrueLaw.prove_or_disprove.is_a?(Truth) }
 law { Law::FalseLaw.prove_or_disprove.is_a?(Fallacy) }
+
+law { Law.new(proc {x = 1; y = 2; x == y;}).prove_or_disprove.
+        details == "(1 == 2)" }
+
