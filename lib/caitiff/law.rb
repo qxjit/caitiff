@@ -33,8 +33,8 @@ class Law
       else
         Fallacy.new(self, results.to_s)
       end
-    rescue Exception
-      Fallacy.new(self)
+    rescue Exception => e
+      Fallacy.new(self, nil, e)
     end
   end
 end

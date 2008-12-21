@@ -27,6 +27,9 @@ class ProcResults
       };
     } unless RUBY_VERSION >= "1.9" # matz added this to env.h for ParseTree
 
+    builder.prefix %{
+    }
+
     builder.c_singleton %Q{
       static VALUE rewrite_to_record_last_call(VALUE block) {
         struct BLOCK *data;

@@ -12,7 +12,13 @@ judge.fallacies.each do |fallacy|
     puts "  #{source_line}"
   end
   puts "  ----"
-  puts "  #{fallacy.details}"
+  puts "  #{fallacy.details}" if fallacy.details
+  if fallacy.error
+    puts "  #{fallacy.error.inspect}"
+    fallacy.error.backtrace.each do |backtrace_line|
+      puts "  #{backtrace_line}"
+    end
+  end
   puts ""
 end
 
