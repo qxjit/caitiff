@@ -54,11 +54,14 @@ class ProcResults
           }
         }
 
-        if(nd_type(last_node) == NODE_CALL) {
-          NODE *original_receiver = last_node->nd_recv;
+        if(nd_type(last_node) == NODE_FCALL) {
+          last_node->nd_recv = NEW_SELF();
+          nd_set_type(last_node, NODE_CALL);
+        }
 
-          if (nd_type(original_receiver) == NODE_CONST &&
-              original_receiver->nd_vid == rb_intern("ProcResults")) {
+        if(nd_type(last_node) == NODE_CALL) {
+          if (nd_type(last_node->nd_recv) == NODE_CONST &&
+              last_node->nd_recv->nd_vid == rb_intern("ProcResults")) {
             return Qnil;
           }
 
