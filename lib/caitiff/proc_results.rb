@@ -110,7 +110,7 @@ class ProcResults
   end
 
   def to_s
-    if receiver
+    if method_name
       Ruby2Ruby.new.process [:call, [:lit, receiver], 
                                     method_name, 
                                     [:arglist, 

@@ -18,6 +18,7 @@ law {ProcResults.collect(proc {1 == 2}).method_name == :==}
 law {ProcResults.collect(proc {x = 1; y = 2; x == y}).to_s == "(1 == 2)"}
 law {ProcResults.collect(proc {[].empty?}).to_s == "[].empty?"}
 law {ProcResults.collect(proc {true}).to_s == "true"}
+law {ProcResults.collect(proc {nil == nil}).to_s == "(nil == nil)"}
 
 law {p = proc {1 == 2}
      ProcResults.collect(p)
