@@ -1,0 +1,43 @@
+= Caitiff
+
+Caitiff is a toy library that implements assertions based on arbitrary ruby expressions and generates
+useful output.  It was written as an experiment in what could be done and is not intended for actual use.
+If you're interested in building it out for actual use, let me know!
+
+== Syntax
+
+Write a file containing "laws" about how the system should behave.  Caitiff includes a simple example file
+with the two laws listed below
+
+in example_laws.rb
+
+  law { 2 * 3 == 10 / 2 }
+  law { 2 * 3 == 6 }
+
+== Judging
+
+Laws are judged using the judge script, included in the Caitiff's root directory.  To run the example file
+you would type 
+
+  ruby -Ilib judge example_laws.rb
+
+A rake task to do this is provided:
+
+  rake example
+
+== Output
+
+The judge produces the following output when judging the example
+
+  Fallacy: ./example_laws.rb:1
+    law { 2 * 3 == 10 / 2 }
+    ----
+    (6 == 5)
+
+  2 laws, 1 truths, 1 fallacies
+
+As you can see, it provides the original source code of the law followed by a simplified expression with 
+the left and right hand sides evaluated.  Instead of writing lots of custom assertions in your test
+code, you can use arbitrary ruby expressions and still get more useful output than "expected true, but was false."
+
+

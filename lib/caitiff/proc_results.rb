@@ -1,5 +1,5 @@
 class ProcResults
-  attr_reader :value, :receiver, :arguments, :method_name
+  attr_reader :value, :receiver, :arguments, :method_name, :starting_line
 
   inline do |builder|
     builder.include '"node.h"'
@@ -81,6 +81,12 @@ class ProcResults
           new_args->nd_alen = last_node->nd_args->nd_alen + 1;
           last_node->nd_args = new_args;
 
+          new_args = NEW_ARRAY(NEW_LIT(INT2FIX(nd_line(last_node->nd_recv))));
+
+          new_args->nd_next = last_node->nd_args;
+          new_args->nd_alen = last_node->nd_args->nd_alen + 1;
+          last_node->nd_args = new_args;
+
           last_node->nd_recv = NEW_CONST(rb_intern("ProcResults"));
           last_node->nd_mid = rb_intern("record");
         }
@@ -90,9 +96,9 @@ class ProcResults
     }
   end
 
-  def self.record(receiver, method_name, *arguments)
+  def self.record(starting_line, receiver, method_name, *arguments)
     value = receiver.send(method_name, *arguments)
-    new(value, receiver, arguments, method_name)
+    new(value, receiver, arguments, method_name, starting_line)
   end
 
   def self.collect(block)
@@ -102,15 +108,16 @@ class ProcResults
     if raw_result.is_a?(ProcResults)
       raw_result
     else
-      ProcResults.new(raw_result, nil, nil, nil)
+      ProcResults.new(raw_result, nil, nil, nil, nil)
     end
   end
 
-  def initialize(value, receiver, arguments, method_name)
+  def initialize(value, receiver, arguments, method_name, starting_line)
     @value = value
     @receiver = receiver
     @arguments = arguments
     @method_name = method_name
+    @starting_line = starting_line
   end
 
   def to_s
